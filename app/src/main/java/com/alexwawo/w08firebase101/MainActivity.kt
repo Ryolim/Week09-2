@@ -50,8 +50,9 @@ fun StudentRegistrationScreen(viewModel: StudentViewModel = viewModel()) {
 
     var currentPhone by remember { mutableStateOf("") }
     var phoneList by remember { mutableStateOf(listOf<String>()) }
+    var selectedStudentDocId by remember { mutableStateOf<String?>(null)}
 
-    Column(modifier = Modifier
+        Column(modifier = Modifier
         .padding(16.dp)
         .fillMaxSize()) {
 
@@ -76,28 +77,45 @@ fun StudentRegistrationScreen(viewModel: StudentViewModel = viewModel()) {
             }
         }
 
-        if (phoneList.isNotEmpty()) {
-            Text("Phone Numbers:", style = MaterialTheme.typography.labelLarge)
-            phoneList.forEach {
-                Text("- $it")
+            if (phoneList.isNotEmpty()) {
+                phoneList.forEachIndexed { index, phone ->
+                    Row(Modifier.padding(8d.p)) {
+                    Text("- $phone", "")
+                    Button(onClick = {
+                        phoneList = phoneList.toMutableList().also {
+                            it.removeAt(index) }
+                    }) {
+                        Text("Remove")
+                    }
+                }
+                }
             }
-        }
 
-        Button(onClick = {
-            viewModel.addStudent(Student(studentId, name, program, phoneList))
-            studentId = ""
-            name = ""
-            program = ""
-            phoneList = listOf()
-        }, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Submit")
-        }
+            Button(
+                onClick = {
+                    if (selectedStudentDocId != null) {
 
-        Divider(modifier = Modifier.padding(vertical = 16.dp))
+                        viewModel.updateStudent(Student(selectedStudentDocId!!, studentId, name,
+                            program, phoneList))
+                        selectedStudentDocId = null
+                    } else {
+                        viewModel.addStudent(Student("", studentId, name,
+                            program, phoneList))
+                    }
 
-        Text("Student List", style = MaterialTheme.typography.titleMedium)
+                    // Reset form
+                    studentId = ""
+                    name = ""
+                    program = ""
+                    phoneList = listOf()
+                },
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text(if (selectedStudentDocId != null) "Update" else
+                    "Submit")
+            }
 
-        LazyColumn {
+            LazyColumn {
             items(viewModel.students) { student ->
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text("ID: ${student.id}")
